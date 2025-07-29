@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<sdf version="1.6" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="camera_sensor" params="sensor_name parent_link pose rpy">
+    <link name="${sensor_name}_link">
+      <pose>${pose} ${rpy}</pose>
+      <visual name="${sensor_name}_visual">
+        <geometry>
+          <box><size>0.05 0.05 0.05</size></box>
+        </geometry>
+        <material>
+          <ambient>1.0 1.0 0.0 1.0</ambient>
+          <diffuse>1.0 1.0 0.0 1.0</diffuse>
+          <specular>0.2 0.2 0.2 1.0</specular>
+          <emissive>0.0 0.0 0.0 1.0</emissive>
+        </material>
+      </visual>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia>
+          <ixx>1e-5</ixx><iyy>1e-5</iyy><izz>1e-5</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+
+      <sensor name="${sensor_name}" type="camera">
+        <always_on>true</always_on>
+        <update_rate>30</update_rate>
+        <visualize>true</visualize>
+        <topic>camera/image_raw</topic>
+        <gz_frame_id>camera_rgb_frame</gz_frame_id>
+        <camera>
+          <camera_info_topic>camera/camera_info</camera_info_topic>
+          <horizontal_fov>1.047</horizontal_fov>
+          <image><width>640</width><height>480</height><format>R8G8B8</format></image>
+          <clip><near>0.1</near><far>100</far></clip>
+        </camera>
+
+      </sensor>
+
+    </link>
+
+    <joint name="${sensor_name}_joint" type="fixed">
+      <parent>${parent_link}</parent>
+      <child>${sensor_name}_link</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+      </axis>
+    </joint>
+  </xacro:macro>
+
+
+  <xacro:macro name="imu_sensor" params="sensor_name parent_link pose_xyz:='0 0 0.2' pose_rpy:='0 0 0'">
+    <link name="${sensor_name}_link">
+      <pose>${pose_xyz} ${pose_rpy}</pose>
+      <visual name="${sensor_name}_visual">
+        <geometry>
+          <box><size>0.03 0.03 0.03</size></box>
+        </geometry>
+      </visual>
+      <inertial>
+        <mass>0.05</mass>
+        <inertia>
+          <ixx>1e-5</ixx><iyy>1e-5</iyy><izz>1e-5</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      
+      <sensor name="imu_sensor" type="imu">
+        <topic>/imu/data</topic>
+        <update_rate>100.0</update_rate>
+        <always_on>1</always_on>
+        <visualize>1</visualize>
+        <gz_frame_id>${sensor_name}_link</gz_frame_id>
+      </sensor>
+    </link>
+
+    <joint name="${sensor_name}_joint" type="fixed">
+      <parent>${parent_link}</parent>
+      <child>${sensor_name}_link</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+      </axis>
+    </joint>
+
+  </xacro:macro>
+
+</sdf>

@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<sdf version="1.6" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <!-- Macro for a wheel -->
+    <xacro:macro name="bogie_wheel" params="
+          name 
+          parent_link 
+          x:='0'
+          y:='0'
+          z:='0' 
+          y_wheel:='0'
+          rpy:='0 0 0' 
+          wheel_diameter:='0.3' 
+          wheel_length:='0.05' 
+          wheel_mass:='2.5' 
+          susp_diameter:='0.1' 
+          susp_length:='0.2' 
+          susp_mass:='1.0' 
+          spring_coeff:='4000' 
+          damping_coeff:='15' 
+          ">
+
+      <!-- =========================== -->
+      <!-- Computed Parameters         -->
+      <!-- =========================== -->
+      <!-- wheel -->
+      <xacro:property name="wheel_r" value="${wheel_diameter / 2.0}"/>
+      <xacro:property name="wheel_l" value="${wheel_length}"/>
+
+      <xacro:property name="wheel_ixx" value="${1.0/12.0 * wheel_mass * (3 * wheel_r * wheel_r + wheel_l * wheel_l)}"/>
+      <xacro:property name="wheel_iyy" value="${0.5 * wheel_mass * wheel_r * wheel_r}"/>
+      <xacro:property name="wheel_izz" value="${wheel_ixx}"/>
+
+      <!-- Suspension property -->
+      <xacro:property name="susp_r" value="${susp_diameter/2}"/>
+      <xacro:property name="susp_l" value="${susp_length}"/>
+
+      <xacro:property name="susp_ixx" value="${1.0/12.0 * susp_mass * (3 * susp_r * susp_r + susp_l * susp_l)}"/>
+      <xacro:property name="susp_iyy" value="${1.0/12.0 * susp_mass * (3 * susp_r * susp_r + susp_l * susp_l)}"/>
+      <xacro:property name="susp_izz" value="${1.0/12.0 * susp_mass * (3 * susp_r * susp_r + susp_l * susp_l)}"/>
+    
+      <xacro:property name="susp_joint_xyz" value="${x} ${y} ${z+susp_length/2}"/>
+      <xacro:property name="wheel_joint_xyz" value="${x} ${y_wheel} ${z - susp_length/2 + wheel_r}"/>
+      <!-- =========================== -->
+      <!-- Suspension Link             -->
+      <!-- =========================== -->
+      <link name="${name}_suspension_link">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <mass>${susp_mass}</mass>
+          <inertia>
+            <ixx>${susp_ixx}</ixx><ixy>0</ixy><ixz>0</ixz>
+            <iyy>${susp_iyy}</iyy><iyz>0</iyz>
+            <izz>${susp_izz}</izz>
+          </inertia>
+        </inertial>
+
+        <collision name="${name}_suspension_collision">
+          <pose>${susp_joint_xyz} 0 0 0</pose> <!-- Rotate cylinder to face +Y -->
+          <geometry>
+            <cylinder>
+              <radius>${susp_r}</radius> 
+              <length>${susp_l}</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name="${name}_suspension_visual">
+          <pose>${susp_joint_xyz} 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>${susp_r}</radius> 
+              <length>${susp_l}</length>
+            </cylinder>
+          </geometry>
+          <material> 
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- =========================== -->
+      <!-- Suspension Joint            -->
+      <!-- =========================== -->
+      <joint name="${name}_suspension_joint" type="prismatic">
+        <pose>${susp_joint_xyz} 0 0 0</pose>
+        <parent>${parent_link}</parent>
+        <child>${name}_suspension_link</child>
+        <axis> 
+          <xyz>0 0 -1</xyz>
+          <limit> 
+            <effort>100</effort>
+            <velocity>10.0</velocity> 
+            <lower>-0.07</lower> 
+            <upper>0.07</upper>
+            <stiffness>${spring_coeff}</stiffness>
+            <dissipation>0</dissipation>
+          </limit>
+        </axis>
+        <physics>
+          <ode>
+            <limit>
+              <cfm>0.0</cfm>
+              <erp>0.2</erp>
+            </limit>
+          </ode>
+        </physics>
+        <dynamics>
+          <damping>${damping_coeff}</damping> 
+          <spring_stiffness>${spring_coeff}</spring_stiffness>
+        </dynamics>
+      </joint>
+
+      <!-- =========================== -->
+      <!-- wheel Link                  -->
+      <!-- =========================== -->
+      <link name="${name}_wheel_link">
+        <inertial>
+          <mass>${wheel_mass}</mass>
+          <inertia> 
+            <ixx>${wheel_ixx}</ixx><ixy>0</ixy><ixz>0</ixz>
+            <iyy>${wheel_iyy}</iyy><iyz>0</iyz>
+            <izz>${wheel_izz}</izz>
+          </inertia>
+        </inertial>
+        
+        <collision name="${name}_wheel_collision">
+          <pose>${wheel_joint_xyz} 1.5708 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>${wheel_r}</radius> 
+              <length>${wheel_l}</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name="${name}_wheel_visual">
+          <pose>${wheel_joint_xyz} 1.5708 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>${wheel_r}</radius>
+              <length>${wheel_l}</length>
+            </cylinder>
+          </geometry>
+          <material> 
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- =========================== -->
+      <!-- wheel Revolute Joint        -->
+      <!-- =========================== -->
+      <joint name="${name}_wheel_joint" type="revolute">
+        <pose>${wheel_joint_xyz} 1.5708 0 0</pose>
+        <parent>${name}_suspension_link</parent>
+        <child>${name}_wheel_link</child>
+        <axis> 
+          <xyz>0 1 0</xyz>
+        </axis>
+        <limit effort="10" velocity="10" lower="-3.14" upper="3.14"/>
+        <dynamics damping="0.1" friction="0.1"/>
+      </joint>
+    </xacro:macro>
+</sdf>

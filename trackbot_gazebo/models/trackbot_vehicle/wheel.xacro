@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<sdf version="1.6" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <!-- Macro for a wheel -->
+    <xacro:macro name="drive_wheel" params="
+        name
+        wheel_diameter:='0.5'
+        wheel_length:='0.1' 
+        wheel_mass:='1.0'
+        x:='0' 
+        y:='0' 
+        z:='0'
+        ">
+      <xacro:property name="wheel_radius" value="${wheel_diameter/2}"/>
+      <xacro:property name="wheel_width" value="${wheel_length}"/>
+
+      <link name="${name}_link">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <mass>${wheel_mass}</mass>
+          <inertia>
+            <ixx>0.01</ixx><ixy>0</ixy><ixz>0</ixz>
+            <iyy>0.01</iyy><iyz>0</iyz><izz>0.01</izz>
+          </inertia>
+        </inertial>
+
+        <collision name="${name}_collision">
+          <pose>${x} ${y} ${z} 1.5708 0 0</pose> <!-- Rotate cylinder to face +Y -->
+          <geometry>
+            <cylinder>
+              <radius>${wheel_radius}</radius>
+              <length>${wheel_width}</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name="${name}_visual">
+          <pose>${x} ${y} ${z} 1.5708 0 0</pose> <!-- Rotate cylinder to face +Y -->
+          <geometry>
+            <cylinder>
+              <radius>${wheel_radius}</radius>
+              <length>${wheel_width}</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+
+      <joint name="${name}_joint" type="revolute">
+        <pose>${x} ${y} ${z} 0 0 0</pose>
+        <parent>base_link</parent>
+        <child>${name}_link</child>
+        <axis>
+          <xyz>0 1 0</xyz>
+        </axis>
+      </joint>
+    </xacro:macro>
+</sdf>
