@@ -1,13 +1,5 @@
 # trackbot_ros2
 
-##source /usr/share/gazebo-11/setup.bash
-
-Add this to .bashrc
-export GZ_SIM_RESOURCE_PATH=$GZ_SIM_RESOURCE_PATH:$(ros2 pkg prefix etaf_gazebo)/share/trackbot_gazebo/models
-
-For older ignition
-export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:$(ros2 pkg prefix etaf_gazebo)/share/trackbot_gazebo/models
-
 $ colcon build --packages-select trackbot_gazebo --symlink-install
 
 
