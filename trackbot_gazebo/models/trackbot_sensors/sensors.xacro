@@ -1,14 +1,15 @@
 <?xml version="1.0"?>
-<sdf version="1.6" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
 
   <xacro:macro name="camera_sensor" params="sensor_name parent_link pose rpy">
     <link name="${sensor_name}_link">
       <pose>${pose} ${rpy}</pose>
       <visual name="${sensor_name}_visual">
         <geometry>
-          <box><size>0.05 0.05 0.05</size></box>
+          <box size="0.05 0.05 0.05"/>
         </geometry>
-        <material>
+        <material name="camera_color">
+          <color rgba="0.5 0.5 0.5 1.0"/>
           <ambient>1.0 1.0 0.0 1.0</ambient>
           <diffuse>1.0 1.0 0.0 1.0</diffuse>
           <specular>0.2 0.2 0.2 1.0</specular>
@@ -16,11 +17,14 @@
         </material>
       </visual>
       <inertial>
-        <mass>0.1</mass>
-        <inertia>
+        <mass value="0.1"/>
+        <inertia ixx="0.1" ixy="0.0" ixz="0.0"
+           iyy="0.1" iyz="0.0"
+           izz="0.1"/>
+        <!--<inertia>
           <ixx>1e-5</ixx><iyy>1e-5</iyy><izz>1e-5</izz>
           <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
-        </inertia>
+        </inertia>-->
       </inertial>
 
       <sensor name="${sensor_name}" type="camera">
@@ -41,12 +45,10 @@
     </link>
 
     <joint name="${sensor_name}_joint" type="fixed">
-      <parent>${parent_link}</parent>
-      <child>${sensor_name}_link</child>
-      <pose>0 0 0 0 0 0</pose>
-      <axis>
-        <xyz>0 0 1</xyz>
-      </axis>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="${parent_link}"/>
+      <child link="${sensor_name}_link"/>
+      <axis xyz="0 0 1"/>
     </joint>
   </xacro:macro>
 
@@ -56,15 +58,18 @@
       <pose>${pose_xyz} ${pose_rpy}</pose>
       <visual name="${sensor_name}_visual">
         <geometry>
-          <box><size>0.03 0.03 0.03</size></box>
+          <box size="0.03 0.03 0.03"/>
         </geometry>
       </visual>
       <inertial>
-        <mass>0.05</mass>
-        <inertia>
+        <mass value="0.05"/>
+        <inertia ixx="0.1" ixy="0.0" ixz="0.0"
+           iyy="0.1" iyz="0.0"
+           izz="0.1"/>
+        <!--<inertia>
           <ixx>1e-5</ixx><iyy>1e-5</iyy><izz>1e-5</izz>
           <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
-        </inertia>
+        </inertia>-->
       </inertial>
       
       <sensor name="imu_sensor" type="imu">
@@ -77,14 +82,12 @@
     </link>
 
     <joint name="${sensor_name}_joint" type="fixed">
-      <parent>${parent_link}</parent>
-      <child>${sensor_name}_link</child>
-      <pose>0 0 0 0 0 0</pose>
-      <axis>
-        <xyz>0 0 1</xyz>
-      </axis>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="${parent_link}"/>
+      <child link="${sensor_name}_link"/>
+      <axis xyz="0 0 1"/>
     </joint>
 
   </xacro:macro>
 
-</sdf>
+</robot>

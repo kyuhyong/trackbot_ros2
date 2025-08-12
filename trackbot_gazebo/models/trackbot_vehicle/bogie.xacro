@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<sdf version="1.6" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
 
     <!-- Macro for a wheel -->
     <xacro:macro name="bogie_wheel" params="
@@ -40,40 +40,32 @@
       <xacro:property name="susp_izz" value="${1.0/12.0 * susp_mass * (3 * susp_r * susp_r + susp_l * susp_l)}"/>
     
       <xacro:property name="susp_joint_xyz" value="${x} ${y} ${z+susp_length/2}"/>
-      <xacro:property name="wheel_joint_xyz" value="${x} ${y_wheel} ${z - susp_length/2 + wheel_r}"/>
+      <xacro:property name="wheel_joint_xyz" value="${0} ${y_wheel} ${-susp_length/2}"/>
       <!-- =========================== -->
       <!-- Suspension Link             -->
       <!-- =========================== -->
       <link name="${name}_suspension_link">
-        <pose>0 0 0 0 0 0</pose>
         <inertial>
-          <mass>${susp_mass}</mass>
-          <inertia>
-            <ixx>${susp_ixx}</ixx><ixy>0</ixy><ixz>0</ixz>
-            <iyy>${susp_iyy}</iyy><iyz>0</iyz>
-            <izz>${susp_izz}</izz>
-          </inertia>
+          <mass value="${susp_mass}"/>
+          <inertia ixx="${susp_ixx}" ixy="0.0" ixz="0.0"
+            iyy="${susp_iyy}" iyz="0.0"
+            izz="${susp_izz}"/>
         </inertial>
 
         <collision name="${name}_suspension_collision">
-          <pose>${susp_joint_xyz} 0 0 0</pose> <!-- Rotate cylinder to face +Y -->
+          <origin xyz="0 0 0" rpy="0 0 0"/> <!-- Rotate cylinder to face +Y -->
           <geometry>
-            <cylinder>
-              <radius>${susp_r}</radius> 
-              <length>${susp_l}</length>
-            </cylinder>
+            <cylinder radius="${susp_r}" length="${susp_l}"/>
           </geometry>
         </collision>
 
         <visual name="${name}_suspension_visual">
-          <pose>${susp_joint_xyz} 0 0 0</pose>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
           <geometry>
-            <cylinder>
-              <radius>${susp_r}</radius> 
-              <length>${susp_l}</length>
-            </cylinder>
+            <cylinder radius="${susp_r}" length="${susp_l}"/>
           </geometry>
-          <material> 
+          <material name="suspension_color">
+            <color rgba="0.5 0.5 0.5 1.0"/> 
             <ambient>0 0 1 1</ambient>
             <diffuse>0 0 1 1</diffuse>
           </material>
@@ -84,66 +76,65 @@
       <!-- Suspension Joint            -->
       <!-- =========================== -->
       <joint name="${name}_suspension_joint" type="prismatic">
-        <pose>${susp_joint_xyz} 0 0 0</pose>
-        <parent>${parent_link}</parent>
-        <child>${name}_suspension_link</child>
-        <axis> 
-          <xyz>0 0 -1</xyz>
-          <limit> 
-            <effort>100</effort>
-            <velocity>10.0</velocity> 
-            <lower>-0.07</lower> 
-            <upper>0.07</upper>
-            <stiffness>${spring_coeff}</stiffness>
-            <dissipation>0</dissipation>
-          </limit>
-        </axis>
-        <physics>
-          <ode>
-            <limit>
-              <cfm>0.0</cfm>
-              <erp>0.2</erp>
-            </limit>
-          </ode>
-        </physics>
-        <dynamics>
-          <damping>${damping_coeff}</damping> 
-          <spring_stiffness>${spring_coeff}</spring_stiffness>
-        </dynamics>
+        <origin xyz="${x} ${y} ${z}" rpy="0 0 0"/>
+        <parent link="${parent_link}"/>
+        <child link="${name}_suspension_link"/>
+        <axis xyz="0 0 -1"/> <!-- moves along -Z -->
+        <limit lower="-0.1" upper="0.1" effort="500" velocity="10.0"/>
+        <!--<dynamics damping="${damping_coeff}" spring_stiffness="${spring_coeff}"/>--> <!--no springs-->
       </joint>
-
+      <!-- Gazebo: dynamics only (NO <axis> wrapper to avoid duplication) --> 
+      <xacro:if value="$(arg use_gazebo)">
+        <gazebo reference="${name}_suspension_joint">
+        <axis>
+          <dynamics>
+            <damping>${damping_coeff}</damping>
+            <spring_reference>0</spring_reference>
+            <spring_stiffness>${spring_coeff}</spring_stiffness>
+          </dynamics>
+        </axis>
+          <!--<axis>
+            <xyz>0 0 -1</xyz>
+            <limit>
+              <lower>-0.07</lower>
+              <upper>0.07</upper>
+              <effort>100</effort>
+              <velocity>10.0</velocity>
+            </limit>
+            <dynamics>
+              <damping>${damping_coeff}</damping>
+              <spring_reference>0</spring_reference>
+              <spring_stiffness>${spring_coeff}</spring_stiffness>
+            </dynamics>
+          </axis>
+          -->
+        </gazebo>
+      </xacro:if>
       <!-- =========================== -->
       <!-- wheel Link                  -->
       <!-- =========================== -->
       <link name="${name}_wheel_link">
         <inertial>
-          <mass>${wheel_mass}</mass>
-          <inertia> 
-            <ixx>${wheel_ixx}</ixx><ixy>0</ixy><ixz>0</ixz>
-            <iyy>${wheel_iyy}</iyy><iyz>0</iyz>
-            <izz>${wheel_izz}</izz>
-          </inertia>
+          <mass value="${wheel_mass}"/>
+          <inertia ixx="${wheel_ixx}" ixy="0.0" ixz="0.0"
+            iyy="${wheel_iyy}" iyz="0.0"
+            izz="${wheel_izz}"/>
         </inertial>
         
         <collision name="${name}_wheel_collision">
-          <pose>${wheel_joint_xyz} 1.5708 0 0</pose>
+          <origin xyz="0 0 0" rpy="1.5708 0 0"/><!-- only rotate the cylinder -->
           <geometry>
-            <cylinder>
-              <radius>${wheel_r}</radius> 
-              <length>${wheel_l}</length>
-            </cylinder>
+            <cylinder radius="${wheel_r}" length="${wheel_l}"/>
           </geometry>
         </collision>
 
         <visual name="${name}_wheel_visual">
-          <pose>${wheel_joint_xyz} 1.5708 0 0</pose>
+          <origin xyz="0 0 0" rpy="1.5708 0 0"/>
           <geometry>
-            <cylinder>
-              <radius>${wheel_r}</radius>
-              <length>${wheel_l}</length>
-            </cylinder>
+            <cylinder radius="${wheel_r}" length="${wheel_l}"/>
           </geometry>
-          <material> 
+          <material name="bogie_wheel_color">
+            <color rgba="0.5 0.5 0.5 1.0"/> 
             <ambient>0 0 1 1</ambient>
             <diffuse>0 0 1 1</diffuse>
           </material>
@@ -153,15 +144,11 @@
       <!-- =========================== -->
       <!-- wheel Revolute Joint        -->
       <!-- =========================== -->
-      <joint name="${name}_wheel_joint" type="revolute">
-        <pose>${wheel_joint_xyz} 1.5708 0 0</pose>
-        <parent>${name}_suspension_link</parent>
-        <child>${name}_wheel_link</child>
-        <axis> 
-          <xyz>0 1 0</xyz>
-        </axis>
-        <limit effort="10" velocity="10" lower="-3.14" upper="3.14"/>
-        <dynamics damping="0.1" friction="0.1"/>
+      <joint name="${name}_wheel_joint" type="continuous">
+        <origin xyz="${wheel_joint_xyz}" rpy="0 0 0"/> <!-- the *only* translation -->
+        <parent link="${name}_suspension_link"/>
+        <child link="${name}_wheel_link"/>
+        <axis xyz="0 1 0"/>
       </joint>
     </xacro:macro>
-</sdf>
+</robot>

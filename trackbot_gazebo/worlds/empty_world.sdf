@@ -4,7 +4,8 @@
 
     <!-- Gravity and physics -->
     <gravity>0 0 -9.81</gravity>
-    <physics name="default_physics" type="ode">
+    <physics name="default_physics" type="ode"/>
+    <!--
       <ode>
         <solver>
           <type>quick</type>
@@ -29,7 +30,7 @@
       <real_time_update_rate>0</real_time_update_rate>
       <max_step_size>0.001</max_step_size>
 
-    </physics>
+    </physics>-->
 
     <!-- Ambient settings -->
     <scene>

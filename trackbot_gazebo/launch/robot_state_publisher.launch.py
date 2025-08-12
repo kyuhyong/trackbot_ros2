@@ -24,24 +24,21 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PythonExpression
 from launch_ros.actions import Node
-
+import xacro
 
 def generate_launch_description():
-    #TRACKBOT_VEHICLE_MODEL = os.environ['TRACKBOT_VEHICLE_MODEL']
-
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
-    urdf_file_name = 'trackbot_vehicle.urdf'
     frame_prefix = LaunchConfiguration('frame_prefix', default='')
 
-    #print('urdf_file_name : {}'.format(urdf_file_name))
-
-    urdf_path = os.path.join(
+    xacro_file = os.path.join(
         get_package_share_directory('trackbot_gazebo'),
-        'urdf',
-        urdf_file_name)
-
-    with open(urdf_path, 'r') as infp:
-        robot_desc = infp.read()
+        'models',
+        'trackbot_vehicle',
+        'model.urdf.xacro'
+    )
+    # Process xacro to generate URDF string
+    robot_description_config = xacro.process_file(xacro_file)
+    robot_desc = robot_description_config.toxml()
 
     return LaunchDescription([
         DeclareLaunchArgument(

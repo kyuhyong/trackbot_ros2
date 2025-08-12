@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
-<sdf version="1.6" xmlns:xacro="http://ros.org/wiki/xacro">
-
+<robot name="trackbot_vehicle" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:include filename="wheel.xacro" />
   <xacro:include filename="bogie.xacro" />
   <xacro:include filename="../trackbot_sensors/sensors.xacro" />
+
+  <xacro:arg name="use_gazebo" default="false"/>
 
   <xacro:property name="body_length" value="1.8"/>
   <xacro:property name="body_width" value="0.96"/>
@@ -17,17 +18,18 @@
   <xacro:property name="drive_wheel_offset_y" value="${body_width/2+drive_wheel_w/2}"/>
   <xacro:property name="drive_wheel_offset_z" value="0.15"/>
 
-  <xacro:property name="bogie_wheel_offset_y" value="${body_width/2}"/>
+  
   <xacro:property name="bogie_offset_z" value="0.0"/>
   <xacro:property name="bogie_wheel_d" value="0.2"/>
   <xacro:property name="bogie_wheel_w" value="0.2"/>
   <xacro:property name="bogie_wheel_mass" value="5.0"/>
   <xacro:property name="bogie_susp_d" value="0.1"/>
+  <xacro:property name="bogie_wheel_offset_y" value="${body_width/2+bogie_susp_d/2}"/>
+  
   <xacro:property name="bogie_susp_l" value="0.2"/>
   <xacro:property name="bogie_susp_mass" value="1.0"/>
   <xacro:property name="bogie_spring_coeff" value="1000"/>
   <xacro:property name="bogie_damping_coeff" value="0.1"/>
-
 
   <xacro:property name="camera_front_xyz" value="0.9 0 0.3"/>
   <xacro:property name="camera_front_rpy" value="0 0 0"/>
@@ -35,68 +37,70 @@
   <xacro:property name="lidar_front_xyz" value="0.9 0 0.4"/>
   <xacro:property name="lidar_front_rpy" value="0 0 0"/>
 
-
-  <model name="trackbot_vehicle">
-    <static>false</static>
+    <!-- Dummy root link with no inertia -->
+    <link name="root"/>
 
     <!-- ****************** ROBOT BASE FOOTPRINT ***************************  -->
-    <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
     <link name="base_footprint"/>
-    
+
     <!-- Base Link -->
     <link name="base_link">
-      <pose>0 0 ${body_height/2} 0 0 0</pose>
       <inertial>
-        <mass>${body_mass}</mass>
-        <inertia>
-          <ixx>1.0</ixx><ixy>0.0</ixy><ixz>0.0</ixz>
-          <iyy>1.0</iyy><iyz>0.0</iyz>
-          <izz>1.0</izz>
-        </inertia>
+        <mass value="${body_mass}"/>
+        <inertia ixx="${body_mass/12*(body_width*body_width+body_height*body_height)}" ixy="0.0" ixz="0.0"
+                iyy="${body_mass/12*(body_length*body_length+body_height*body_height)}" iyz="0.0"
+                izz="${body_mass/12*(body_length*body_length+body_width*body_width)}"/>
       </inertial>
       
       <collision name="base_collision">
+        <origin xyz="0 0 0.15" rpy="0 0 0"/>
         <geometry>
-          <box>
-            <size>${body_length} ${body_width} ${body_height}</size>
-          </box>
+          <box size="${body_length} ${body_width} ${body_height}"/>
         </geometry>
       </collision>
       
       <visual name="base_visual">
         <origin xyz="0 0 0.15" rpy="0 0 0"/>
         <geometry>
-          <mesh>
-          <uri>model://trackbot_vehicle/meshes/robot_base.stl</uri>
-          <scale>0.001 0.001 0.001</scale>
-          </mesh>
+          <box size="${body_length} ${body_width} ${body_height}"/>
+          <!--<mesh filename="package://trackbot_gazebo/models/trackbot_vehicle/meshes/robot_base.stl" scale="0.001 0.001 0.001"/>
+          <xacro:if value="$(arg use_gazebo)">
+            <mesh>
+              <uri>model://trackbot_vehicle/meshes/robot_base.stl</uri>
+            </mesh>
+          </xacro:if>
+          <xacro:unless value="$(arg use_gazebo)">
+            <mesh filename="package://trackbot_gazebo/models/trackbot_vehicle/meshes/robot_base.stl"/>
+          </xacro:unless>-->
         </geometry>
-        <material>
-          <ambient>1.0 0.0 0.0 1.0</ambient>
-          <diffuse>1.0 0.0 0.0 1.0</diffuse>
-          <specular>0.2 0.2 0.2 1.0</specular>
-          <emissive>0.0 0.0 0.0 1.0</emissive>
-      </material>
+        <material name="body_color">
+          <color rgba="0.5 0.5 0.5 1.0"/>
+        </material>
       </visual>
       
     </link>
 
     <!-- ************************ JOINTS ***********************************  -->
-    <!-- Pose of the joint is the same as the child link frame -->
-    <!-- Axis is the axis of rotation relative to the child link frame -->
-    
-    <joint name="base_joint" type="fixed">
-      <parent>base_footprint</parent>
-      <child>base_link</child>
-      <pose>0 0 0 0 0 0</pose>
+    <!-- Your original root becomes a child -->
+    <joint name="root_to_base" type="fixed">
+      <parent link="root"/>
+      <child link="base_footprint"/>
     </joint>
-    <plugin name="gz::sim::systems::Sensors"
-        filename="gz-sim-sensors-system">
-    </plugin>
-    <plugin 
-      filename="gz-sim-imu-system"
-      name="gz::sim::systems::Imu"> 
-    </plugin>
+
+    <joint name="base_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="base_footprint"/>
+      <child link="base_link"/>
+    </joint>
+    <gazebo>
+      <plugin name="gz::sim::systems::Sensors"
+          filename="gz-sim-sensors-system">
+      </plugin>
+      <plugin 
+        filename="gz-sim-imu-system"
+        name="gz::sim::systems::Imu"> 
+      </plugin>
+    </gazebo>
 
     <xacro:camera_sensor sensor_name="front_camera" parent_link="base_link" pose="${camera_front_xyz}" rpy="${camera_front_rpy}"/>
     <xacro:imu_sensor sensor_name="inertial_unit" parent_link="base_link"/>
@@ -114,59 +118,59 @@
     <!-- Instantiate bogie wheels -->
     <xacro:bogie_wheel name="bogie_left_1" parent_link="base_link" 
         x="0.5" y="${bogie_wheel_offset_y}" z="${bogie_offset_z}"
-        y_wheel="${bogie_wheel_offset_y + bogie_susp_d/2 + bogie_wheel_w/2}"
-        rpy="0 0 0"
+        y_wheel="${bogie_susp_d/2 + bogie_wheel_w/2}" rpy="0 0 0"
         wheel_diameter="${bogie_wheel_d}" wheel_length="${bogie_wheel_w}" wheel_mass="${bogie_wheel_mass}" 
         susp_diameter="${bogie_susp_d}" susp_length="${bogie_susp_l}" susp_mass="${bogie_susp_mass}"
         spring_coeff="${bogie_spring_coeff}" damping_coeff="${bogie_damping_coeff}"/>
 
     <xacro:bogie_wheel name="bogie_left_2" parent_link="base_link" 
         x="0.0" y="${bogie_wheel_offset_y}" z="${bogie_offset_z}"
-        y_wheel="${bogie_wheel_offset_y + bogie_susp_d/2 + bogie_wheel_w/2}"
-        rpy="0 0 0"
+        y_wheel="${bogie_susp_d/2 + bogie_wheel_w/2}" rpy="0 0 0"
         wheel_diameter="${bogie_wheel_d}" wheel_length="${bogie_wheel_w}" wheel_mass="${bogie_wheel_mass}" 
         susp_diameter="${bogie_susp_d}" susp_length="${bogie_susp_l}" susp_mass="${bogie_susp_mass}"
         spring_coeff="${bogie_spring_coeff}" damping_coeff="${bogie_damping_coeff}"/>
 
     <xacro:bogie_wheel name="bogie_left_3" parent_link="base_link" 
         x="-0.5" y="${bogie_wheel_offset_y}" z="${bogie_offset_z}"
-        y_wheel="${bogie_wheel_offset_y + bogie_susp_d/2 + bogie_wheel_w/2}"
-        rpy="0 0 0"
-        wheel_diameter="${bogie_wheel_d}" wheel_length="${bogie_wheel_w}" wheel_mass="${bogie_wheel_mass}" 
+        y_wheel="${bogie_susp_d/2 + bogie_wheel_w/2}" rpy="0 0 0"
+        wheel_diameter="${bogie_wheel_d}"  wheel_length="${bogie_wheel_w}" wheel_mass="${bogie_wheel_mass}" 
         susp_diameter="${bogie_susp_d}" susp_length="${bogie_susp_l}" susp_mass="${bogie_susp_mass}"
         spring_coeff="${bogie_spring_coeff}" damping_coeff="${bogie_damping_coeff}"/>
     
     <xacro:bogie_wheel name="bogie_right_1" parent_link="base_link" 
         x="0.5" y="${-bogie_wheel_offset_y}" z="${bogie_offset_z}"
-        y_wheel="${-bogie_wheel_offset_y - bogie_susp_d/2 - bogie_wheel_w/2}"
-        rpy="0 0 0"
+        y_wheel="${-bogie_susp_d/2 - bogie_wheel_w/2}" rpy="0 0 0"
         wheel_diameter="${bogie_wheel_d}" wheel_length="${bogie_wheel_w}" wheel_mass="${bogie_wheel_mass}" 
         susp_diameter="${bogie_susp_d}" susp_length="${bogie_susp_l}" susp_mass="${bogie_susp_mass}"
         spring_coeff="${bogie_spring_coeff}" damping_coeff="${bogie_damping_coeff}"/>
 
     <xacro:bogie_wheel name="bogie_right_2" parent_link="base_link" 
         x="0.0" y="${-bogie_wheel_offset_y}" z="${bogie_offset_z}"
-        y_wheel="${-bogie_wheel_offset_y - bogie_susp_d/2 - bogie_wheel_w/2}"
-        rpy="0 0 0"
+        y_wheel="${-bogie_susp_d/2 - bogie_wheel_w/2}" rpy="0 0 0"
         wheel_diameter="${bogie_wheel_d}" wheel_length="${bogie_wheel_w}" wheel_mass="${bogie_wheel_mass}" 
         susp_diameter="${bogie_susp_d}" susp_length="${bogie_susp_l}" susp_mass="${bogie_susp_mass}"
         spring_coeff="${bogie_spring_coeff}" damping_coeff="${bogie_damping_coeff}"/>
         
     <xacro:bogie_wheel name="bogie_right_3" parent_link="base_link" 
         x="-0.5" y="${-bogie_wheel_offset_y}" z="${bogie_offset_z}"
-        y_wheel="${-bogie_wheel_offset_y - bogie_susp_d/2 - bogie_wheel_w/2}"
-        rpy="0 0 0"
+        y_wheel="${-bogie_susp_d/2 - bogie_wheel_w/2}" rpy="0 0 0"
         wheel_diameter="${bogie_wheel_d}" wheel_length="${bogie_wheel_w}" wheel_mass="${bogie_wheel_mass}" 
         susp_diameter="${bogie_susp_d}" susp_length="${bogie_susp_l}" susp_mass="${bogie_susp_mass}"
         spring_coeff="${bogie_spring_coeff}" damping_coeff="${bogie_damping_coeff}"/>
 
     <!-- Plugin to use ROS2 DiffDrive -->
     <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
-      <!-- wheels -->
+      <!-- wheels 
       <left_joint>drivewhl_left_f_joint</left_joint>
       <left_joint>drivewhl_left_r_joint</left_joint>
       <right_joint>drivewhl_right_f_joint</right_joint>
-      <right_joint>drivewhl_right_r_joint</right_joint>
+      <right_joint>drivewhl_right_r_joint</right_joint>-->
+      <left_joint>bogie_left_1_wheel_joint</left_joint>
+      <left_joint>bogie_left_2_wheel_joint</left_joint>
+      <left_joint>bogie_left_3_wheel_joint</left_joint>
+      <right_joint>bogie_right_1_wheel_joint</right_joint>
+      <right_joint>bogie_right_2_wheel_joint</right_joint>
+      <right_joint>bogie_right_3_wheel_joint</right_joint>
 
       <!-- kinematics -->
       <wheel_separation>${2 * drive_wheel_offset_y}</wheel_separation>
@@ -212,5 +216,4 @@
       <joint_name>bogie_right_3_wheel_joint</joint_name>
     </plugin>
 
-  </model>
-</sdf>
+</robot>
