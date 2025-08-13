@@ -62,16 +62,9 @@
       <visual name="base_visual">
         <origin xyz="0 0 0.15" rpy="0 0 0"/>
         <geometry>
-          <box size="${body_length} ${body_width} ${body_height}"/>
-          <!--<mesh filename="package://trackbot_gazebo/models/trackbot_vehicle/meshes/robot_base.stl" scale="0.001 0.001 0.001"/>
-          <xacro:if value="$(arg use_gazebo)">
-            <mesh>
-              <uri>model://trackbot_vehicle/meshes/robot_base.stl</uri>
-            </mesh>
-          </xacro:if>
-          <xacro:unless value="$(arg use_gazebo)">
-            <mesh filename="package://trackbot_gazebo/models/trackbot_vehicle/meshes/robot_base.stl"/>
-          </xacro:unless>-->
+          <!-- Use model:// with the *model name* that has model.config -->
+          <mesh filename="package://trackbot_vehicle/meshes/robot_base.stl"
+                scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="body_color">
           <color rgba="0.5 0.5 0.5 1.0"/>
@@ -102,7 +95,7 @@
       </plugin>
     </gazebo>
 
-    <xacro:camera_sensor sensor_name="front_camera" parent_link="base_link" pose="${camera_front_xyz}" rpy="${camera_front_rpy}"/>
+    <xacro:camera_sensor sensor_name="front_camera" parent_link="base_link" xyz="${camera_front_xyz}" rpy="${camera_front_rpy}"/>
     <xacro:imu_sensor sensor_name="inertial_unit" parent_link="base_link"/>
 
     <!-- Instantiate four drive wheels -->
@@ -159,61 +152,64 @@
         spring_coeff="${bogie_spring_coeff}" damping_coeff="${bogie_damping_coeff}"/>
 
     <!-- Plugin to use ROS2 DiffDrive -->
-    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
-      <!-- wheels 
-      <left_joint>drivewhl_left_f_joint</left_joint>
-      <left_joint>drivewhl_left_r_joint</left_joint>
-      <right_joint>drivewhl_right_f_joint</right_joint>
-      <right_joint>drivewhl_right_r_joint</right_joint>-->
-      <left_joint>bogie_left_1_wheel_joint</left_joint>
-      <left_joint>bogie_left_2_wheel_joint</left_joint>
-      <left_joint>bogie_left_3_wheel_joint</left_joint>
-      <right_joint>bogie_right_1_wheel_joint</right_joint>
-      <right_joint>bogie_right_2_wheel_joint</right_joint>
-      <right_joint>bogie_right_3_wheel_joint</right_joint>
+    <gazebo>
+      <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+        <!-- wheels 
+        <left_joint>drivewhl_left_f_joint</left_joint>
+        <left_joint>drivewhl_left_r_joint</left_joint>
+        <right_joint>drivewhl_right_f_joint</right_joint>
+        <right_joint>drivewhl_right_r_joint</right_joint>-->
+        <left_joint>bogie_left_1_wheel_joint</left_joint>
+        <left_joint>bogie_left_2_wheel_joint</left_joint>
+        <left_joint>bogie_left_3_wheel_joint</left_joint>
+        <right_joint>bogie_right_1_wheel_joint</right_joint>
+        <right_joint>bogie_right_2_wheel_joint</right_joint>
+        <right_joint>bogie_right_3_wheel_joint</right_joint>
 
-      <!-- kinematics -->
-      <wheel_separation>${2 * drive_wheel_offset_y}</wheel_separation>
-      <wheel_radius>${drive_wheel_d}/2</wheel_radius>
+        <!-- kinematics -->
+        <wheel_separation>${2 * drive_wheel_offset_y}</wheel_separation>
+        <wheel_radius>${drive_wheel_d}/2</wheel_radius>
 
-      <!-- limits -->
-      <max_linear_acceleration>1.0</max_linear_acceleration>
+        <!-- limits -->
+        <max_linear_acceleration>1.0</max_linear_acceleration>
 
-      <topic>cmd_vel</topic>
-      <odom_topic>odom</odom_topic>
-      <frame_id>odom</frame_id>
-      <tf_topic>/tf</tf_topic>
-      <odom_publisher_frequency>30</odom_publisher_frequency>
-      <child_frame_id>base_footprint</child_frame_id>
-      <ros>
-          <namespace>/</namespace>        <!-- put ROS topics at root -->
-          <remapping>cmd_vel:=cmd_vel</remapping>
-          <remapping>odom:=odom</remapping>
-      </ros>
-    </plugin>
-
+        <topic>cmd_vel</topic>
+        <odom_topic>odom</odom_topic>
+        <frame_id>odom</frame_id>
+        <tf_topic>/tf</tf_topic>
+        <odom_publisher_frequency>30</odom_publisher_frequency>
+        <child_frame_id>base_footprint</child_frame_id>
+        <ros>
+            <namespace>/</namespace>        <!-- put ROS topics at root -->
+            <remapping>cmd_vel:=cmd_vel</remapping>
+            <remapping>odom:=odom</remapping>
+        </ros>
+      </plugin>
+    </gazebo>
     <!-- Plugin to publish joint states and broadcast TF -->
-    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
-      <topic>joint_states</topic>
-      <publish_frequency>50</publish_frequency>
-      <update_rate>30</update_rate>
-      <!--<joint_name_suffix>_joint</joint_name_suffix>-->
-      <joint_name>drivewhl_left_f_joint</joint_name>
-      <joint_name>drivewhl_right_f_joint</joint_name>
-      <joint_name>drivewhl_left_r_joint</joint_name>
-      <joint_name>drivewhl_right_r_joint</joint_name>
-      <joint_name>bogie_left_1_suspension_joint</joint_name>
-      <joint_name>bogie_left_2_suspension_joint</joint_name>
-      <joint_name>bogie_left_3_suspension_joint</joint_name>
-      <joint_name>bogie_right_1_suspension_joint</joint_name>
-      <joint_name>bogie_right_2_suspension_joint</joint_name>
-      <joint_name>bogie_right_3_suspension_joint</joint_name>
-      <joint_name>bogie_left_1_wheel_joint</joint_name>
-      <joint_name>bogie_left_2_wheel_joint</joint_name>
-      <joint_name>bogie_left_3_wheel_joint</joint_name>
-      <joint_name>bogie_right_1_wheel_joint</joint_name>
-      <joint_name>bogie_right_2_wheel_joint</joint_name>
-      <joint_name>bogie_right_3_wheel_joint</joint_name>
-    </plugin>
+    <gazebo>
+      <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+        <topic>joint_states</topic>
+        <publish_frequency>50</publish_frequency>
+        <update_rate>30</update_rate>
+        <!--<joint_name_suffix>_joint</joint_name_suffix>-->
+        <joint_name>drivewhl_left_f_joint</joint_name>
+        <joint_name>drivewhl_right_f_joint</joint_name>
+        <joint_name>drivewhl_left_r_joint</joint_name>
+        <joint_name>drivewhl_right_r_joint</joint_name>
+        <joint_name>bogie_left_1_suspension_joint</joint_name>
+        <joint_name>bogie_left_2_suspension_joint</joint_name>
+        <joint_name>bogie_left_3_suspension_joint</joint_name>
+        <joint_name>bogie_right_1_suspension_joint</joint_name>
+        <joint_name>bogie_right_2_suspension_joint</joint_name>
+        <joint_name>bogie_right_3_suspension_joint</joint_name>
+        <joint_name>bogie_left_1_wheel_joint</joint_name>
+        <joint_name>bogie_left_2_wheel_joint</joint_name>
+        <joint_name>bogie_left_3_wheel_joint</joint_name>
+        <joint_name>bogie_right_1_wheel_joint</joint_name>
+        <joint_name>bogie_right_2_wheel_joint</joint_name>
+        <joint_name>bogie_right_3_wheel_joint</joint_name>
+      </plugin>
+    </gazebo>
 
 </robot>
