@@ -1,0 +1,32 @@
+# Default choice when no 'profile' override is passed
+default: empty
+
+worlds:
+  empty:
+    file: worlds/empty_world.sdf   # relative to the package share
+    gui: true
+    paused: false
+    spawn:
+      x: 0.0
+      y: 0.0
+      z: 0.5
+    # extra_args: ""               # optional per-world extra flags for gz
+
+  baylands:
+    file: worlds/baylands.sdf
+    gui: true
+    paused: false
+    extra_args: "-s"               # example: force server mode; combine as needed
+    spawn:
+      x: 10.0
+      y: 50.0
+      z: 1.0
+  night:
+    file: worlds/night_world.sdf
+    gui: true
+    paused: true                   # start paused
+    # extra_args: "-r -s -u"       # anything you want to pass through
+    spawn:
+      x: 1.5
+      y: -2.0
+      z: 0.5

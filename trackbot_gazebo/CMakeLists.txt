@@ -63,6 +63,10 @@ install(TARGETS ${EXEC_NAME}
 #install(DIRECTORY launch models rviz urdf worlds
 #  DESTINATION share/${PROJECT_NAME}/
 #)
+
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
+)
 # Install models separately for Gazebo to find them
 install(DIRECTORY models/
   DESTINATION share/${PROJECT_NAME}/models
