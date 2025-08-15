@@ -9,7 +9,6 @@
           y:='0'
           z:='0' 
           y_wheel:='0'
-          rpy:='0 0 0' 
           wheel_diameter:='0.3' 
           wheel_length:='0.05' 
           wheel_mass:='2.5' 
@@ -64,8 +63,7 @@
           <geometry>
             <cylinder radius="${susp_r}" length="${susp_l}"/>
           </geometry>
-          <material name="suspension_color">
-            <color rgba="0.5 0.5 0.5 1.0"/> 
+          <material name="blue">
             <ambient>0 0 1 1</ambient>
             <diffuse>0 0 1 1</diffuse>
           </material>
@@ -86,28 +84,13 @@
       <!-- Gazebo: dynamics only (NO <axis> wrapper to avoid duplication) --> 
       <xacro:if value="$(arg use_gazebo)">
         <gazebo reference="${name}_suspension_joint">
-        <axis>
-          <dynamics>
-            <damping>${damping_coeff}</damping>
-            <spring_reference>0</spring_reference>
-            <spring_stiffness>${spring_coeff}</spring_stiffness>
-          </dynamics>
-        </axis>
-          <!--<axis>
-            <xyz>0 0 -1</xyz>
-            <limit>
-              <lower>-0.07</lower>
-              <upper>0.07</upper>
-              <effort>100</effort>
-              <velocity>10.0</velocity>
-            </limit>
+          <axis>
             <dynamics>
               <damping>${damping_coeff}</damping>
               <spring_reference>0</spring_reference>
               <spring_stiffness>${spring_coeff}</spring_stiffness>
             </dynamics>
           </axis>
-          -->
         </gazebo>
       </xacro:if>
       <!-- =========================== -->
@@ -133,8 +116,7 @@
           <geometry>
             <cylinder radius="${wheel_r}" length="${wheel_l}"/>
           </geometry>
-          <material name="bogie_wheel_color">
-            <color rgba="0.5 0.5 0.5 1.0"/> 
+          <material name="dark">
             <ambient>0 0 1 1</ambient>
             <diffuse>0 0 1 1</diffuse>
           </material>

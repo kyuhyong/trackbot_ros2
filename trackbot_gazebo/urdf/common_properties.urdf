@@ -9,14 +9,14 @@
   </material>
 
   <material name="dark">
-    <color rgba="0.3 0.3 0.3 1.0"/>
+    <color rgba="0.1 0.1 0.1 1.0"/>
   </material>
   <material name="light_black">
-    <color rgba="0.4 0.4 0.4 1.0"/>
+    <color rgba="0.2 0.2 0.2 1.0"/>
   </material>
 
   <material name="blue">
-    <color rgba="0.0 0.0 0.8 1.0"/>
+    <color rgba="0.0 0.0 0.7 1.0"/>
   </material>
 
   <material name="green">
@@ -24,7 +24,7 @@
   </material>
 
   <material name="grey">
-    <color rgba="0.5 0.5 0.5 1.0"/>
+    <color rgba="0.3 0.3 0.3 1.0"/>
   </material>
 
   <material name="orange">
@@ -37,6 +37,10 @@
 
   <material name="red">
     <color rgba="0.8 0.0 0.0 1.0"/>
+  </material>
+
+  <material name="light_red">
+    <color rgba="0.8 0.3 0.3 1.0"/>
   </material>
 
   <material name="white">
